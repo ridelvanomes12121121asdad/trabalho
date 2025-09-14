@@ -1,0 +1,455 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Sistema de Conexão e Alerta v3.0</title>
+  <style>
+    :root {
+      --bg: #0f172a; --card: #1e293b; --accent: #38bdf8; --text: #e2e8f0;
+      --muted: #94a3b8; --success: #22c55e; --danger: #f43f5e;
+      --focus-ring: 0 0 0 3px rgba(56, 189, 248, 0.4);
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: var(--bg); color: var(--text); }
+    body { display: flex; align-items: center; justify-content: center; padding: 16px; }
+
+    .app-container { width: 100%; max-width: 480px; }
+    .card { background-color: var(--card); padding: 24px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+
+    /* --- TELA DE LOGIN/CADASTRO --- */
+    #authScreen .tabs { display: flex; border-bottom: 1px solid #334155; margin-bottom: 20px; }
+    #authScreen .tab-button { padding: 12px 16px; border: none; background: none; color: var(--muted); cursor: pointer; font-size: 16px; border-bottom: 2px solid transparent; }
+    #authScreen .tab-button.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    h1, h2 { margin: 0 0 8px; text-align: center; }
+    h1 { font-size: 24px; }
+    h2 { font-size: 22px; }
+    p.subtitle { margin: 0 0 24px; text-align: center; color: var(--muted); }
+
+    label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
+    input[type="text"], input[type="date"], input[type="password"] {
+      width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155;
+      background-color: #0f172a; color: var(--text); font-size: 15px; transition: border-color 0.2s;
+    }
+    input:focus { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }
+    .form-group { margin-bottom: 16px; }
+    button {
+      display: inline-block; width: 100%; padding: 14px; border-radius: 8px; border: none;
+      background-color: var(--accent); color: #0f172a; cursor: pointer; font-weight: 700; font-size: 16px;
+      transition: background-color 0.2s;
+    }
+    button:hover { background-color: #7dd3fc; }
+    button:focus { outline: none; box-shadow: var(--focus-ring); }
+    .feedback { margin-top: 16px; text-align: center; font-weight: 500; min-height: 20px; }
+    .feedback.error { color: var(--danger); }
+
+    /* --- TELA PRINCIPAL --- */
+    #mainScreen { display: none; }
+    .main-header { text-align: center; margin-bottom: 24px; border-bottom: 1px solid #334155; padding-bottom: 20px; }
+    .main-header p { color: var(--muted); margin: 4px 0 0; }
+
+    .section-divider { border: 0; height: 1px; background-color: #334155; margin: 24px 0; }
+
+    /* Área de Conexão */
+    #connectArea h3 { font-size: 18px; text-align: center; color: var(--muted); margin-bottom: 16px; }
+    #connectResult { text-align: center; }
+
+    /* Área de Ações (depois de conectar) */
+    #actionArea { display: none; }
+    .target-status { text-align: center; margin-bottom: 20px; }
+    .target-status .status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 600; margin-top: 8px; }
+    .target-status .status.online { background-color: rgba(34, 197, 94, 0.2); color: #4ade80; }
+    .target-status .status.offline { background-color: rgba(148, 163, 184, 0.2); color: var(--muted); }
+    .target-status .status-dot { width: 8px; height: 8px; border-radius: 50%; }
+    .target-status .status.online .status-dot { background-color: var(--success); }
+    .target-status .status.offline .status-dot { background-color: var(--muted); }
+
+    #btnAlert {
+        background-color: var(--danger); padding: 20px; font-size: 20px;
+        box-shadow: 0 4px 15px rgba(244, 63, 94, 0.3);
+    }
+    #btnAlert:hover { background-color: #f87171; }
+    #btnClear { background-color: #475569; margin-top: 10px; font-size: 14px; padding: 12px; }
+    #btnClear:hover { background-color: #64748b; }
+
+    /* Área de Alertas Recebidos */
+    .recipient-area.receiving { animation: pulse 1.5s infinite; border-radius: 12px; }
+    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(244, 63, 94, 0); } 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); } }
+    .alert-card { margin-top: 20px; padding: 16px; border-radius: 8px; background-color: rgba(244, 63, 94, 0.15); border-left: 4px solid var(--danger); }
+    .alert-card h4 { margin: 0 0 8px; color: #fca5a5; text-align: left; }
+    .alert-card p { margin: 0; font-style: italic; text-align: left; }
+
+    #logoutButton { background: none; border: 1px solid #475569; color: var(--muted); margin-top: 24px; }
+    #logoutButton:hover { background-color: #334155; color: var(--text); }
+
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- TELA DE AUTENTICAÇÃO (CADASTRO / LOGIN) -->
+    <div id="authScreen" class="card">
+      <h1>Bem-vindo!</h1>
+      <p class="subtitle">Acesse sua conta ou crie um novo cadastro.</p>
+      
+      <div class="tabs">
+        <button class="tab-button active" data-tab="login">Entrar</button>
+        <button class="tab-button" data-tab="register">Cadastrar</button>
+      </div>
+
+      <!-- Conteúdo da Aba de Login -->
+      <div id="login" class="tab-content active">
+        <form id="loginForm">
+          <div class="form-group"><label for="nameLogin">Seu Nome</label><input id="nameLogin" type="text" required /></div>
+          <div class="form-group"><label for="dobLogin">Data de Nascimento</label><input id="dobLogin" type="date" required /></div>
+          <div class="form-group"><label for="keyLogin">Sua Palavra-chave</label><input id="keyLogin" type="password" required /></div>
+          <button type="submit">Entrar</button>
+          <div id="loginResult" class="feedback" aria-live="polite"></div>
+        </form>
+      </div>
+
+      <!-- Conteúdo da Aba de Cadastro -->
+      <div id="register" class="tab-content">
+        <form id="registerForm">
+          <div class="form-group"><label for="nameReg">Seu Nome</label><input id="nameReg" type="text" required /></div>
+          <div class="form-group"><label for="dobReg">Data de Nascimento</label><input id="dobReg" type="date" required /></div>
+          <div class="form-group"><label for="keyReg">Crie uma Palavra-chave</label><input id="keyReg" type="password" required /></div>
+          <button type="submit">Cadastrar e Entrar</button>
+          <div id="regResult" class="feedback" aria-live="polite"></div>
+        </form>
+      </div>
+    </div>
+
+    <!-- TELA PRINCIPAL (APÓS LOGIN) -->
+    <div id="mainScreen" class="card">
+      <div class="main-header">
+        <h2 id="welcomeName"></h2>
+        <p>Você está online.</p>
+      </div>
+
+      <!-- ÁREA DE ALERTAS RECEBIDOS -->
+      <div id="recipientCard" class="recipient-area" aria-live="assertive">
+        <!-- Alertas recebidos serão injetados aqui -->
+      </div>
+
+      <hr class="section-divider">
+
+      <!-- ÁREA PARA CONECTAR A OUTRO USUÁRIO -->
+      <div id="connectArea">
+        <h3>Conectar a outro usuário</h3>
+        <form id="connectForm">
+          <div class="form-group"><label for="nameCon">Nome do Usuário</label><input id="nameCon" type="text" required /></div>
+          <div class="form-group"><label for="dobCon">Data de Nascimento</label><input id="dobCon" type="date" required /></div>
+          <div class="form-group"><label for="keyCon">Palavra-chave</label><input id="keyCon" type="password" required /></div>
+          <button type="submit">Buscar e Conectar</button>
+          <div id="connectResult" class="feedback" aria-live="polite"></div>
+        </form>
+      </div>
+
+      <!-- ÁREA DE AÇÕES (APARECE APÓS CONECTAR) -->
+      <div id="actionArea">
+        <div class="target-status">
+          <h3>Conectado a <span id="targetName"></span></h3>
+          <div id="targetStatusIndicator" class="status">
+            <span class="status-dot"></span>
+            <span id="targetStatusText"></span>
+          </div>
+        </div>
+        <div class="form-group">
+          <label for="messageInput">Mensagem para o alerta</label>
+          <input id="messageInput" type="text" placeholder="Opcional: Ex: Preciso de ajuda!" />
+        </div>
+        <button id="btnAlert">🚨 ENVIAR ALERTA 🚨</button>
+        <button id="btnClear">Limpar Alerta Enviado</button>
+      </div>
+      
+      <button id="logoutButton">Sair da Conta</button>
+    </div>
+  </div>
+
+  <div class="sr-only" aria-live="polite" id="ariaLogs"></div>
+
+  <!-- Firebase (compat) -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+
+  <script>
+    // ====== CONFIGURE AQUI ======
+    const firebaseConfig = {
+      apiKey: "REPLACE_WITH_YOUR_API_KEY",
+      authDomain: "REPLACE_WITH_YOUR_AUTH_DOMAIN",
+      databaseURL: "https://faculdadepr-efc02-default-rtdb.firebaseio.com/",
+      projectId: "REPLACE_WITH_YOUR_PROJECT_ID",
+      storageBucket: "REPLACE_WITH_YOUR_STORAGE_BUCKET",
+      messagingSenderId: "REPLACE_WITH_YOUR_SENDER_ID",
+      appId: "REPLACE_WITH_YOUR_APP_ID"
+    };
+
+    // --- INICIALIZAÇÃO ---
+    firebase.initializeApp(firebaseConfig );
+    const db = firebase.database();
+    const usersRef = db.ref('users');
+
+    // --- ESTADO DA APLICAÇÃO ---
+    let currentUser = null;
+    let connectedTarget = null;
+    let presenceRef = null;
+    let recipientListener = null;
+    let targetStatusListener = null;
+
+    // --- ELEMENTOS DA UI ---
+    const ui = {
+        authScreen: document.getElementById('authScreen'),
+        mainScreen: document.getElementById('mainScreen'),
+        tabs: document.querySelectorAll('.tab-button'),
+        tabContents: document.querySelectorAll('.tab-content'),
+        loginForm: document.getElementById('loginForm'),
+        registerForm: document.getElementById('registerForm'),
+        connectForm: document.getElementById('connectForm'),
+        loginResult: document.getElementById('loginResult'),
+        regResult: document.getElementById('regResult'),
+        connectResult: document.getElementById('connectResult'),
+        welcomeName: document.getElementById('welcomeName'),
+        recipientCard: document.getElementById('recipientCard'),
+        connectArea: document.getElementById('connectArea'),
+        actionArea: document.getElementById('actionArea'),
+        targetName: document.getElementById('targetName'),
+        targetStatusIndicator: document.getElementById('targetStatusIndicator'),
+        targetStatusText: document.getElementById('targetStatusText'),
+        messageInput: document.getElementById('messageInput'),
+        btnAlert: document.getElementById('btnAlert'),
+        btnClear: document.getElementById('btnClear'),
+        logoutButton: document.getElementById('logoutButton'),
+        ariaLogs: document.getElementById('ariaLogs'),
+    };
+
+    // --- FUNÇÕES UTILITÁRIAS ---
+    function makeSearchKey(name, dob, key) {
+      return btoa(`${name.trim().toLowerCase()}|${dob}|${key.trim().toLowerCase()}`);
+    }
+
+    function showFeedback(element, message, isError = false) {
+        element.textContent = message;
+        element.className = isError ? 'feedback error' : 'feedback';
+    }
+
+    // --- LÓGICA DA UI ---
+    function showScreen(screenName) {
+        ui.authScreen.style.display = screenName === 'auth' ? 'block' : 'none';
+        ui.mainScreen.style.display = screenName === 'main' ? 'block' : 'none';
+    }
+
+    function setupTabs() {
+        ui.tabs.forEach(tab => {
+            tab.addEventListener('click', () => {
+                ui.tabs.forEach(t => t.classList.remove('active'));
+                ui.tabContents.forEach(c => c.classList.remove('active'));
+                tab.classList.add('active');
+                document.getElementById(tab.dataset.tab).classList.add('active');
+            });
+        });
+    }
+
+    function updateRecipientUI(alertData) {
+        if (alertData && alertData.active) {
+            ui.recipientCard.classList.add('receiving');
+            ui.recipientCard.innerHTML = `
+                <div class="alert-card">
+                    <h4>🔔 Alerta Recebido!</h4>
+                    <p>"${alertData.message || 'Um alerta foi enviado para você.'}"</p>
+                    <button onclick="clearMyAlert()" style="margin-top: 12px; width: auto; padding: 8px 12px; font-size: 14px;">Marcar como Visto</button>
+                </div>`;
+            ui.ariaLogs.textContent = 'Você recebeu um alerta.';
+        } else {
+            ui.recipientCard.classList.remove('receiving');
+            ui.recipientCard.innerHTML = '';
+        }
+    }
+    
+    function updateTargetStatusUI(isOnline) {
+        const statusClass = isOnline ? 'online' : 'offline';
+        const otherClass = isOnline ? 'offline' : 'online';
+        ui.targetStatusIndicator.classList.remove(otherClass);
+        ui.targetStatusIndicator.classList.add(statusClass);
+        ui.targetStatusText.textContent = isOnline ? 'Online' : 'Offline';
+    }
+
+    // --- LÓGICA DO FIREBASE ---
+    function setupPresence(userId) {
+        const amOnline = db.ref('.info/connected');
+        presenceRef = db.ref(`users/${userId}/online`);
+        amOnline.on('value', (snapshot) => {
+            if (snapshot.val()) {
+                presenceRef.onDisconnect().set(false);
+                presenceRef.set(true);
+            }
+        });
+    }
+
+    function setupRecipientListener(userId) {
+        if (recipientListener) recipientListener.off();
+        recipientListener = db.ref(`users/${userId}/alert`);
+        recipientListener.on('value', (snapshot) => {
+            updateRecipientUI(snapshot.val());
+        });
+    }
+    
+    function setupTargetStatusListener(targetId) {
+        if (targetStatusListener) targetStatusListener.off();
+        targetStatusListener = db.ref(`users/${targetId}/online`);
+        targetStatusListener.on('value', (snapshot) => {
+            updateTargetStatusUI(snapshot.val());
+        });
+    }
+
+    async function login(user) {
+        currentUser = user;
+        sessionStorage.setItem('currentUser', JSON.stringify(user));
+        
+        showScreen('main');
+        ui.welcomeName.textContent = `Olá, ${currentUser.name}!`;
+        
+        setupPresence(currentUser.id);
+        setupRecipientListener(currentUser.id);
+    }
+
+    function logout() {
+        if (presenceRef) presenceRef.set(false);
+        if (recipientListener) recipientListener.off();
+        if (targetStatusListener) targetStatusListener.off();
+        
+        currentUser = null;
+        connectedTarget = null;
+        presenceRef = null;
+        sessionStorage.removeItem('currentUser');
+        
+        showScreen('auth');
+        ui.loginForm.reset();
+        ui.registerForm.reset();
+        ui.connectForm.reset();
+        ui.actionArea.style.display = 'none';
+        ui.connectArea.style.display = 'block';
+        showFeedback(ui.loginResult, '');
+        showFeedback(ui.regResult, '');
+        showFeedback(ui.connectResult, '');
+    }
+
+    // --- AÇÕES DO USUÁRIO ---
+    ui.registerForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = ui.registerForm.nameReg.value;
+        const dob = ui.registerForm.dobReg.value;
+        const key = ui.registerForm.keyReg.value;
+        const searchKey = makeSearchKey(name, dob, key);
+
+        showFeedback(ui.regResult, 'Verificando...', false);
+        const snapshot = await usersRef.orderByChild('searchKey').equalTo(searchKey).once('value');
+        
+        if (snapshot.exists()) {
+            showFeedback(ui.regResult, 'Já existe um usuário com esses dados. Tente fazer login.', true);
+            return;
+        }
+
+        const newUserRef = usersRef.push();
+        const user = { id: newUserRef.key, name, dob, key, searchKey, online: true, alert: { active: false } };
+        await newUserRef.set(user);
+        
+        login(user);
+    });
+
+    ui.loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = ui.loginForm.nameLogin.value;
+        const dob = ui.loginForm.dobLogin.value;
+        const key = ui.loginForm.keyLogin.value;
+        const searchKey = makeSearchKey(name, dob, key);
+
+        showFeedback(ui.loginResult, 'Entrando...', false);
+        const snapshot = await usersRef.orderByChild('searchKey').equalTo(searchKey).once('value');
+
+        if (!snapshot.exists()) {
+            showFeedback(ui.loginResult, 'Usuário não encontrado. Verifique os dados ou cadastre-se.', true);
+            return;
+        }
+
+        let user;
+        snapshot.forEach(child => { user = { id: child.key, ...child.val() }; });
+        login(user);
+    });
+
+    ui.connectForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const name = ui.connectForm.nameCon.value;
+        const dob = ui.connectForm.dobCon.value;
+        const key = ui.connectForm.keyCon.value;
+        const searchKey = makeSearchKey(name, dob, key);
+
+        showFeedback(ui.connectResult, 'Conectando...', false);
+        const snapshot = await usersRef.orderByChild('searchKey').equalTo(searchKey).once('value');
+
+        if (!snapshot.exists()) {
+            showFeedback(ui.connectResult, 'Usuário alvo não encontrado.', true);
+            return;
+        }
+
+        snapshot.forEach(child => { connectedTarget = { id: child.key, ...child.val() }; });
+        
+        if (connectedTarget.id === currentUser.id) {
+            showFeedback(ui.connectResult, 'Você não pode se conectar a si mesmo.', true);
+            connectedTarget = null;
+            return;
+        }
+
+        showFeedback(ui.connectResult, `Conectado a ${connectedTarget.name}!`, false);
+        ui.connectArea.style.display = 'none';
+        ui.actionArea.style.display = 'block';
+        ui.targetName.textContent = connectedTarget.name;
+        setupTargetStatusListener(connectedTarget.id);
+    });
+
+    ui.btnAlert.addEventListener('click', () => {
+        if (!connectedTarget) return;
+        const message = ui.messageInput.value.trim();
+        db.ref(`users/${connectedTarget.id}/alert`).set({
+            active: true,
+            message: message || 'Um alerta foi enviado para você.',
+            from: currentUser.name,
+            timestamp: Date.now()
+        });
+        ui.ariaLogs.textContent = 'Alerta enviado.';
+        alert('Alerta enviado com sucesso!');
+    });
+
+    ui.btnClear.addEventListener('click', () => {
+        if (!connectedTarget) return;
+        db.ref(`users/${connectedTarget.id}/alert`).update({ active: false });
+        ui.ariaLogs.textContent = 'Alerta limpo.';
+        alert('Alerta do usuário foi limpo.');
+    });
+
+    function clearMyAlert() {
+        if (!currentUser) return;
+        db.ref(`users/${currentUser.id}/alert`).update({ active: false });
+        ui.ariaLogs.textContent = 'Alerta marcado como visto.';
+    }
+    window.clearMyAlert = clearMyAlert;
+
+    ui.logoutButton.addEventListener('click', logout);
+
+    // --- INICIALIZAÇÃO DA PÁGINA ---
+    document.addEventListener('DOMContentLoaded', () => {
+        setupTabs();
+        const savedUser = sessionStorage.getItem('currentUser');
+        if (savedUser) {
+            login(JSON.parse(savedUser));
+        } else {
+            showScreen('auth');
+        }
+    });
+  </script>
+</body>
+</html>
