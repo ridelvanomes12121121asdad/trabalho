@@ -1,455 +1,301 @@
-<!doctype html>
-<html lang="pt-BR">
+<!DOCTYPE html>
+<html lang="pt-br">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Sistema de Conexão e Alerta v3.0</title>
-  <style>
-    :root {
-      --bg: #0f172a; --card: #1e293b; --accent: #38bdf8; --text: #e2e8f0;
-      --muted: #94a3b8; --success: #22c55e; --danger: #f43f5e;
-      --focus-ring: 0 0 0 3px rgba(56, 189, 248, 0.4);
-    }
-    *, *::before, *::after { box-sizing: border-box; }
-    html, body { height: 100%; margin: 0; font-family: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background-color: var(--bg); color: var(--text); }
-    body { display: flex; align-items: center; justify-content: center; padding: 16px; }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vício Zero | Bloqueio Nacional Definitivo de Cassinos e Bets</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Poppins:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --azul-principal: #2563eb;
+            --azul-escuro: #1e293b;
+            --verde-sucesso: #16a34a;
+            --cinza-fundo: #f8fafc;
+            --branco: #FFFFFF;
+            --texto: #334155;
+            --perigo: #dc2626;
+        }
 
-    .app-container { width: 100%; max-width: 480px; }
-    .card { background-color: var(--card); padding: 24px; border-radius: 12px; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+        * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
 
-    /* --- TELA DE LOGIN/CADASTRO --- */
-    #authScreen .tabs { display: flex; border-bottom: 1px solid #334155; margin-bottom: 20px; }
-    #authScreen .tab-button { padding: 12px 16px; border: none; background: none; color: var(--muted); cursor: pointer; font-size: 16px; border-bottom: 2px solid transparent; }
-    #authScreen .tab-button.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
-    .tab-content { display: none; }
-    .tab-content.active { display: block; }
+        body {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+            color: var(--texto);
+            background-color: var(--branco);
+        }
 
-    h1, h2 { margin: 0 0 8px; text-align: center; }
-    h1 { font-size: 24px; }
-    h2 { font-size: 22px; }
-    p.subtitle { margin: 0 0 24px; text-align: center; color: var(--muted); }
+        h1, h2, h3 { font-family: 'Poppins', sans-serif; color: var(--azul-escuro); }
 
-    label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 6px; font-weight: 500; }
-    input[type="text"], input[type="date"], input[type="password"] {
-      width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #334155;
-      background-color: #0f172a; color: var(--text); font-size: 15px; transition: border-color 0.2s;
-    }
-    input:focus { outline: none; border-color: var(--accent); box-shadow: var(--focus-ring); }
-    .form-group { margin-bottom: 16px; }
-    button {
-      display: inline-block; width: 100%; padding: 14px; border-radius: 8px; border: none;
-      background-color: var(--accent); color: #0f172a; cursor: pointer; font-weight: 700; font-size: 16px;
-      transition: background-color 0.2s;
-    }
-    button:hover { background-color: #7dd3fc; }
-    button:focus { outline: none; box-shadow: var(--focus-ring); }
-    .feedback { margin-top: 16px; text-align: center; font-weight: 500; min-height: 20px; }
-    .feedback.error { color: var(--danger); }
+        /* HEADER */
+        header {
+            background: var(--branco);
+            padding: 1rem 8%;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-    /* --- TELA PRINCIPAL --- */
-    #mainScreen { display: none; }
-    .main-header { text-align: center; margin-bottom: 24px; border-bottom: 1px solid #334155; padding-bottom: 20px; }
-    .main-header p { color: var(--muted); margin: 4px 0 0; }
+        .logo {
+            font-weight: 700;
+            color: var(--azul-principal);
+            font-size: 1.4rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-transform: uppercase;
+            letter-spacing: -1px;
+        }
 
-    .section-divider { border: 0; height: 1px; background-color: #334155; margin: 24px 0; }
+        nav a {
+            text-decoration: none;
+            color: var(--texto);
+            margin-left: 25px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: 0.3s;
+        }
 
-    /* Área de Conexão */
-    #connectArea h3 { font-size: 18px; text-align: center; color: var(--muted); margin-bottom: 16px; }
-    #connectResult { text-align: center; }
+        nav a:hover { color: var(--azul-principal); }
 
-    /* Área de Ações (depois de conectar) */
-    #actionArea { display: none; }
-    .target-status { text-align: center; margin-bottom: 20px; }
-    .target-status .status { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 99px; font-size: 12px; font-weight: 600; margin-top: 8px; }
-    .target-status .status.online { background-color: rgba(34, 197, 94, 0.2); color: #4ade80; }
-    .target-status .status.offline { background-color: rgba(148, 163, 184, 0.2); color: var(--muted); }
-    .target-status .status-dot { width: 8px; height: 8px; border-radius: 50%; }
-    .target-status .status.online .status-dot { background-color: var(--success); }
-    .target-status .status.offline .status-dot { background-color: var(--muted); }
+        /* HERO */
+        .hero {
+            padding: 180px 10% 100px;
+            background: radial-gradient(circle at top right, #eff6ff, #ffffff);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 40px;
+        }
 
-    #btnAlert {
-        background-color: var(--danger); padding: 20px; font-size: 20px;
-        box-shadow: 0 4px 15px rgba(244, 63, 94, 0.3);
-    }
-    #btnAlert:hover { background-color: #f87171; }
-    #btnClear { background-color: #475569; margin-top: 10px; font-size: 14px; padding: 12px; }
-    #btnClear:hover { background-color: #64748b; }
+        .hero-content { max-width: 600px; }
+        .hero h1 { font-size: 3.2rem; margin-bottom: 20px; line-height: 1.1; letter-spacing: -1px; }
+        .hero p { font-size: 1.15rem; margin-bottom: 35px; color: #64748b; }
 
-    /* Área de Alertas Recebidos */
-    .recipient-area.receiving { animation: pulse 1.5s infinite; border-radius: 12px; }
-    @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0.7); } 70% { box-shadow: 0 0 0 15px rgba(244, 63, 94, 0); } 100% { box-shadow: 0 0 0 0 rgba(244, 63, 94, 0); } }
-    .alert-card { margin-top: 20px; padding: 16px; border-radius: 8px; background-color: rgba(244, 63, 94, 0.15); border-left: 4px solid var(--danger); }
-    .alert-card h4 { margin: 0 0 8px; color: #fca5a5; text-align: left; }
-    .alert-card p { margin: 0; font-style: italic; text-align: left; }
+        .cta-button {
+            background-color: var(--verde-sucesso);
+            color: white;
+            padding: 20px 45px;
+            border-radius: 12px;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 1.1rem;
+            display: inline-block;
+            transition: 0.3s;
+            border: none;
+            cursor: pointer;
+            box-shadow: 0 10px 15px -3px rgba(22, 163, 74, 0.3);
+        }
 
-    #logoutButton { background: none; border: 1px solid #475569; color: var(--muted); margin-top: 24px; }
-    #logoutButton:hover { background-color: #334155; color: var(--text); }
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 25px -5px rgba(22, 163, 74, 0.4);
+            filter: brightness(1.1);
+        }
 
-    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
-  </style>
+        /* SEÇÕES GERAIS */
+        section { padding: 100px 10%; }
+        .section-title { text-align: center; margin-bottom: 60px; }
+        .section-title h2 { font-size: 2.2rem; margin-bottom: 15px; }
+
+        .bet-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 20px;
+        }
+
+        .bet-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid #e2e8f0;
+            transition: 0.3s;
+        }
+        .bet-card i { color: var(--perigo); margin-bottom: 10px; display: block; }
+        .bet-card span { font-weight: 600; font-size: 0.9rem; }
+
+        /* MODAL PIX */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(15, 23, 42, 0.9);
+            align-items: center;
+            justify-content: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal-content {
+            background: white;
+            padding: 40px;
+            border-radius: 24px;
+            max-width: 500px;
+            width: 90%;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0,0,0,0.5);
+        }
+
+        .pix-code-box {
+            background: #f1f5f9;
+            padding: 15px;
+            border-radius: 8px;
+            font-family: monospace;
+            font-size: 0.8rem;
+            word-break: break-all;
+            margin: 20px 0;
+            border: 1px dashed #cbd5e1;
+            color: #475569;
+        }
+
+        .copy-btn {
+            background: var(--azul-principal);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        /* FOOTER */
+        footer {
+            background: var(--azul-escuro);
+            color: #cbd5e1;
+            padding: 80px 10% 40px;
+        }
+
+        .footer-warning {
+            border-top: 1px solid #334155;
+            margin-top: 40px;
+            padding-top: 40px;
+            font-size: 0.8rem;
+            text-align: center;
+            opacity: 0.6;
+        }
+
+        @media (max-width: 768px) {
+            .hero { flex-direction: column; text-align: center; padding-top: 140px; }
+            .hero h1 { font-size: 2.4rem; }
+            header { padding: 1rem 5%; }
+            nav { display: none; }
+        }
+    </style>
 </head>
 <body>
 
-  <div class="app-container">
-    <!-- TELA DE AUTENTICAÇÃO (CADASTRO / LOGIN) -->
-    <div id="authScreen" class="card">
-      <h1>Bem-vindo!</h1>
-      <p class="subtitle">Acesse sua conta ou crie um novo cadastro.</p>
-      
-      <div class="tabs">
-        <button class="tab-button active" data-tab="login">Entrar</button>
-        <button class="tab-button" data-tab="register">Cadastrar</button>
-      </div>
+    <header>
+        <div class="logo">
+            <i class="fas fa-shield-alt"></i> Vício Zero
+        </div>
+        <nav>
+            <a href="#bloqueados">Plataformas</a>
+            <a href="#como-funciona">Tecnologia</a>
+            <a href="#depoimentos">Depoimentos</a>
+        </nav>
+    </header>
 
-      <!-- Conteúdo da Aba de Login -->
-      <div id="login" class="tab-content active">
-        <form id="loginForm">
-          <div class="form-group"><label for="nameLogin">Seu Nome</label><input id="nameLogin" type="text" required /></div>
-          <div class="form-group"><label for="dobLogin">Data de Nascimento</label><input id="dobLogin" type="date" required /></div>
-          <div class="form-group"><label for="keyLogin">Sua Palavra-chave</label><input id="keyLogin" type="password" required /></div>
-          <button type="submit">Entrar</button>
-          <div id="loginResult" class="feedback" aria-live="polite"></div>
-        </form>
-      </div>
+    <section class="hero">
+        <div class="hero-content">
+            <h1>Bloqueio Definitivo de Apostas & Cassinos.</h1>
+            <p>Utilizamos protocolos avançados de rede para impedir o acesso a mais de 500 plataformas de jogos de azar. Solução definitiva e imediata.</p>
+            <div style="margin-bottom: 20px;">
+                <span style="font-size: 1.5rem; font-weight: 700; color: var(--azul-escuro);">Apenas R$ 54,59</span>
+            </div>
+            <button class="cta-button" onclick="openPixModal()">ATIVAR BLOQUEIO AGORA</button>
+            <p style="margin-top: 15px; font-size: 0.85rem; color: #64748b;">
+                <i class="fas fa-globe"></i> Disponível em todo o território nacional.
+            </p>
+        </div>
+        <div style="font-size: 12rem; color: var(--azul-principal); opacity: 0.1;" class="hero-icon">
+            <i class="fas fa-user-shield"></i>
+        </div>
+    </section>
 
-      <!-- Conteúdo da Aba de Cadastro -->
-      <div id="register" class="tab-content">
-        <form id="registerForm">
-          <div class="form-group"><label for="nameReg">Seu Nome</label><input id="nameReg" type="text" required /></div>
-          <div class="form-group"><label for="dobReg">Data de Nascimento</label><input id="dobReg" type="date" required /></div>
-          <div class="form-group"><label for="keyReg">Crie uma Palavra-chave</label><input id="keyReg" type="password" required /></div>
-          <button type="submit">Cadastrar e Entrar</button>
-          <div id="regResult" class="feedback" aria-live="polite"></div>
-        </form>
-      </div>
+    <section id="bloqueados" style="background: var(--cinza-fundo);">
+        <div class="section-title">
+            <h2>Proteção Contra +500 Sites</h2>
+            <p>Nossa lista é atualizada diariamente via nuvem para cobrir novos espelhos e aplicativos.</p>
+        </div>
+        <div class="bet-grid">
+            <div class="bet-card"><i class="fas fa-lock"></i><span>Fortune Tiger</span></div>
+            <div class="bet-card"><i class="fas fa-lock"></i><span>Aviator / Spribe</span></div>
+            <div class="bet-card"><i class="fas fa-lock"></i><span>Blaze / Stake</span></div>
+            <div class="bet-card"><i class="fas fa-lock"></i><span>Bet365 / Betano</span></div>
+            <div class="bet-card"><i class="fas fa-lock"></i><span>Esportes da Sorte</span></div>
+            <div class="bet-card"><i class="fas fa-lock"></i><span>1xBet / Pixbet</span></div>
+        </div>
+    </section>
+
+    <div id="pixModal" class="modal">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 10px;">Finalizar Ativação</h2>
+            <p style="color: #64748b; font-size: 0.9rem;">Escaneie o QR Code ou copie o código PIX abaixo para pagar <b>R$ 54,59</b></p>
+            
+            <div style="margin: 20px 0;">
+                <img src="img.qr" alt="QR Code PIX" style="width: 200px; border: 1px solid #eee; padding: 10px; border-radius: 10px;">
+            </div>
+
+            <div class="pix-code-box" id="pixCode">00020126330014BR.GOV.BCB.PIX011110107764369520400005303986540554.595802BR5924Ridelvan Gomes Rodrigues6009SAO PAULO62140510MtNBcEyeca6304E227</div>
+            
+            <button class="copy-btn" onclick="copyPix()">Copiar Código PIX</button>
+            
+            <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
+            
+            <button class="cta-button" style="width: 100%;" onclick="irParaWhats()">JÁ EFETUEI O PAGAMENTO</button>
+            <p style="margin-top: 15px; font-size: 0.8rem; color: #94a3b8; cursor: pointer;" onclick="closePixModal()">Cancelar</p>
+        </div>
     </div>
 
-    <!-- TELA PRINCIPAL (APÓS LOGIN) -->
-    <div id="mainScreen" class="card">
-      <div class="main-header">
-        <h2 id="welcomeName"></h2>
-        <p>Você está online.</p>
-      </div>
-
-      <!-- ÁREA DE ALERTAS RECEBIDOS -->
-      <div id="recipientCard" class="recipient-area" aria-live="assertive">
-        <!-- Alertas recebidos serão injetados aqui -->
-      </div>
-
-      <hr class="section-divider">
-
-      <!-- ÁREA PARA CONECTAR A OUTRO USUÁRIO -->
-      <div id="connectArea">
-        <h3>Conectar a outro usuário</h3>
-        <form id="connectForm">
-          <div class="form-group"><label for="nameCon">Nome do Usuário</label><input id="nameCon" type="text" required /></div>
-          <div class="form-group"><label for="dobCon">Data de Nascimento</label><input id="dobCon" type="date" required /></div>
-          <div class="form-group"><label for="keyCon">Palavra-chave</label><input id="keyCon" type="password" required /></div>
-          <button type="submit">Buscar e Conectar</button>
-          <div id="connectResult" class="feedback" aria-live="polite"></div>
-        </form>
-      </div>
-
-      <!-- ÁREA DE AÇÕES (APARECE APÓS CONECTAR) -->
-      <div id="actionArea">
-        <div class="target-status">
-          <h3>Conectado a <span id="targetName"></span></h3>
-          <div id="targetStatusIndicator" class="status">
-            <span class="status-dot"></span>
-            <span id="targetStatusText"></span>
-          </div>
+    <footer>
+        <div style="text-align: center; max-width: 800px; margin: 0 auto;">
+            <div class="logo" style="justify-content: center; margin-bottom: 20px; color: #fff;">
+                <i class="fas fa-shield-alt"></i> VÍCIO ZERO
+            </div>
+            <p>Tecnologia de ponta a serviço da sua saúde financeira e mental. O bloqueio técnico é a ferramenta mais eficaz para interromper o ciclo compulsivo.</p>
         </div>
-        <div class="form-group">
-          <label for="messageInput">Mensagem para o alerta</label>
-          <input id="messageInput" type="text" placeholder="Opcional: Ex: Preciso de ajuda!" />
+        <div class="footer-warning">
+            <p>&copy; 2026 Vício Zero Brasil - Serviço Técnico de Bloqueio de Rede.</p>
+            <p>A ludopatia é uma condição séria. Além do bloqueio técnico, busque apoio profissional.</p>
         </div>
-        <button id="btnAlert">🚨 ENVIAR ALERTA 🚨</button>
-        <button id="btnClear">Limpar Alerta Enviado</button>
-      </div>
-      
-      <button id="logoutButton">Sair da Conta</button>
-    </div>
-  </div>
+    </footer>
 
-  <div class="sr-only" aria-live="polite" id="ariaLogs"></div>
+    <script>
+        function openPixModal() {
+            document.getElementById('pixModal').style.display = 'flex';
+        }
 
-  <!-- Firebase (compat) -->
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
+        function closePixModal() {
+            document.getElementById('pixModal').style.display = 'none';
+        }
 
-  <script>
-    // ====== CONFIGURE AQUI ======
-    const firebaseConfig = {
-      apiKey: "REPLACE_WITH_YOUR_API_KEY",
-      authDomain: "REPLACE_WITH_YOUR_AUTH_DOMAIN",
-      databaseURL: "https://faculdadepr-efc02-default-rtdb.firebaseio.com/",
-      projectId: "REPLACE_WITH_YOUR_PROJECT_ID",
-      storageBucket: "REPLACE_WITH_YOUR_STORAGE_BUCKET",
-      messagingSenderId: "REPLACE_WITH_YOUR_SENDER_ID",
-      appId: "REPLACE_WITH_YOUR_APP_ID"
-    };
-
-    // --- INICIALIZAÇÃO ---
-    firebase.initializeApp(firebaseConfig );
-    const db = firebase.database();
-    const usersRef = db.ref('users');
-
-    // --- ESTADO DA APLICAÇÃO ---
-    let currentUser = null;
-    let connectedTarget = null;
-    let presenceRef = null;
-    let recipientListener = null;
-    let targetStatusListener = null;
-
-    // --- ELEMENTOS DA UI ---
-    const ui = {
-        authScreen: document.getElementById('authScreen'),
-        mainScreen: document.getElementById('mainScreen'),
-        tabs: document.querySelectorAll('.tab-button'),
-        tabContents: document.querySelectorAll('.tab-content'),
-        loginForm: document.getElementById('loginForm'),
-        registerForm: document.getElementById('registerForm'),
-        connectForm: document.getElementById('connectForm'),
-        loginResult: document.getElementById('loginResult'),
-        regResult: document.getElementById('regResult'),
-        connectResult: document.getElementById('connectResult'),
-        welcomeName: document.getElementById('welcomeName'),
-        recipientCard: document.getElementById('recipientCard'),
-        connectArea: document.getElementById('connectArea'),
-        actionArea: document.getElementById('actionArea'),
-        targetName: document.getElementById('targetName'),
-        targetStatusIndicator: document.getElementById('targetStatusIndicator'),
-        targetStatusText: document.getElementById('targetStatusText'),
-        messageInput: document.getElementById('messageInput'),
-        btnAlert: document.getElementById('btnAlert'),
-        btnClear: document.getElementById('btnClear'),
-        logoutButton: document.getElementById('logoutButton'),
-        ariaLogs: document.getElementById('ariaLogs'),
-    };
-
-    // --- FUNÇÕES UTILITÁRIAS ---
-    function makeSearchKey(name, dob, key) {
-      return btoa(`${name.trim().toLowerCase()}|${dob}|${key.trim().toLowerCase()}`);
-    }
-
-    function showFeedback(element, message, isError = false) {
-        element.textContent = message;
-        element.className = isError ? 'feedback error' : 'feedback';
-    }
-
-    // --- LÓGICA DA UI ---
-    function showScreen(screenName) {
-        ui.authScreen.style.display = screenName === 'auth' ? 'block' : 'none';
-        ui.mainScreen.style.display = screenName === 'main' ? 'block' : 'none';
-    }
-
-    function setupTabs() {
-        ui.tabs.forEach(tab => {
-            tab.addEventListener('click', () => {
-                ui.tabs.forEach(t => t.classList.remove('active'));
-                ui.tabContents.forEach(c => c.classList.remove('active'));
-                tab.classList.add('active');
-                document.getElementById(tab.dataset.tab).classList.add('active');
+        function copyPix() {
+            const text = document.getElementById('pixCode').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                alert("Código PIX copiado com sucesso!");
             });
-        });
-    }
-
-    function updateRecipientUI(alertData) {
-        if (alertData && alertData.active) {
-            ui.recipientCard.classList.add('receiving');
-            ui.recipientCard.innerHTML = `
-                <div class="alert-card">
-                    <h4>🔔 Alerta Recebido!</h4>
-                    <p>"${alertData.message || 'Um alerta foi enviado para você.'}"</p>
-                    <button onclick="clearMyAlert()" style="margin-top: 12px; width: auto; padding: 8px 12px; font-size: 14px;">Marcar como Visto</button>
-                </div>`;
-            ui.ariaLogs.textContent = 'Você recebeu um alerta.';
-        } else {
-            ui.recipientCard.classList.remove('receiving');
-            ui.recipientCard.innerHTML = '';
-        }
-    }
-    
-    function updateTargetStatusUI(isOnline) {
-        const statusClass = isOnline ? 'online' : 'offline';
-        const otherClass = isOnline ? 'offline' : 'online';
-        ui.targetStatusIndicator.classList.remove(otherClass);
-        ui.targetStatusIndicator.classList.add(statusClass);
-        ui.targetStatusText.textContent = isOnline ? 'Online' : 'Offline';
-    }
-
-    // --- LÓGICA DO FIREBASE ---
-    function setupPresence(userId) {
-        const amOnline = db.ref('.info/connected');
-        presenceRef = db.ref(`users/${userId}/online`);
-        amOnline.on('value', (snapshot) => {
-            if (snapshot.val()) {
-                presenceRef.onDisconnect().set(false);
-                presenceRef.set(true);
-            }
-        });
-    }
-
-    function setupRecipientListener(userId) {
-        if (recipientListener) recipientListener.off();
-        recipientListener = db.ref(`users/${userId}/alert`);
-        recipientListener.on('value', (snapshot) => {
-            updateRecipientUI(snapshot.val());
-        });
-    }
-    
-    function setupTargetStatusListener(targetId) {
-        if (targetStatusListener) targetStatusListener.off();
-        targetStatusListener = db.ref(`users/${targetId}/online`);
-        targetStatusListener.on('value', (snapshot) => {
-            updateTargetStatusUI(snapshot.val());
-        });
-    }
-
-    async function login(user) {
-        currentUser = user;
-        sessionStorage.setItem('currentUser', JSON.stringify(user));
-        
-        showScreen('main');
-        ui.welcomeName.textContent = `Olá, ${currentUser.name}!`;
-        
-        setupPresence(currentUser.id);
-        setupRecipientListener(currentUser.id);
-    }
-
-    function logout() {
-        if (presenceRef) presenceRef.set(false);
-        if (recipientListener) recipientListener.off();
-        if (targetStatusListener) targetStatusListener.off();
-        
-        currentUser = null;
-        connectedTarget = null;
-        presenceRef = null;
-        sessionStorage.removeItem('currentUser');
-        
-        showScreen('auth');
-        ui.loginForm.reset();
-        ui.registerForm.reset();
-        ui.connectForm.reset();
-        ui.actionArea.style.display = 'none';
-        ui.connectArea.style.display = 'block';
-        showFeedback(ui.loginResult, '');
-        showFeedback(ui.regResult, '');
-        showFeedback(ui.connectResult, '');
-    }
-
-    // --- AÇÕES DO USUÁRIO ---
-    ui.registerForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const name = ui.registerForm.nameReg.value;
-        const dob = ui.registerForm.dobReg.value;
-        const key = ui.registerForm.keyReg.value;
-        const searchKey = makeSearchKey(name, dob, key);
-
-        showFeedback(ui.regResult, 'Verificando...', false);
-        const snapshot = await usersRef.orderByChild('searchKey').equalTo(searchKey).once('value');
-        
-        if (snapshot.exists()) {
-            showFeedback(ui.regResult, 'Já existe um usuário com esses dados. Tente fazer login.', true);
-            return;
         }
 
-        const newUserRef = usersRef.push();
-        const user = { id: newUserRef.key, name, dob, key, searchKey, online: true, alert: { active: false } };
-        await newUserRef.set(user);
-        
-        login(user);
-    });
-
-    ui.loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const name = ui.loginForm.nameLogin.value;
-        const dob = ui.loginForm.dobLogin.value;
-        const key = ui.loginForm.keyLogin.value;
-        const searchKey = makeSearchKey(name, dob, key);
-
-        showFeedback(ui.loginResult, 'Entrando...', false);
-        const snapshot = await usersRef.orderByChild('searchKey').equalTo(searchKey).once('value');
-
-        if (!snapshot.exists()) {
-            showFeedback(ui.loginResult, 'Usuário não encontrado. Verifique os dados ou cadastre-se.', true);
-            return;
+        function irParaWhats() {
+            const fone = "5599985324277";
+            const msg = encodeURIComponent("já efetuei o pagamento");
+            window.location.href = `https://wa.me/${fone}?text=${msg}`;
         }
 
-        let user;
-        snapshot.forEach(child => { user = { id: child.key, ...child.val() }; });
-        login(user);
-    });
-
-    ui.connectForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const name = ui.connectForm.nameCon.value;
-        const dob = ui.connectForm.dobCon.value;
-        const key = ui.connectForm.keyCon.value;
-        const searchKey = makeSearchKey(name, dob, key);
-
-        showFeedback(ui.connectResult, 'Conectando...', false);
-        const snapshot = await usersRef.orderByChild('searchKey').equalTo(searchKey).once('value');
-
-        if (!snapshot.exists()) {
-            showFeedback(ui.connectResult, 'Usuário alvo não encontrado.', true);
-            return;
+        window.onclick = function(event) {
+            let modal = document.getElementById('pixModal');
+            if (event.target == modal) closePixModal();
         }
-
-        snapshot.forEach(child => { connectedTarget = { id: child.key, ...child.val() }; });
-        
-        if (connectedTarget.id === currentUser.id) {
-            showFeedback(ui.connectResult, 'Você não pode se conectar a si mesmo.', true);
-            connectedTarget = null;
-            return;
-        }
-
-        showFeedback(ui.connectResult, `Conectado a ${connectedTarget.name}!`, false);
-        ui.connectArea.style.display = 'none';
-        ui.actionArea.style.display = 'block';
-        ui.targetName.textContent = connectedTarget.name;
-        setupTargetStatusListener(connectedTarget.id);
-    });
-
-    ui.btnAlert.addEventListener('click', () => {
-        if (!connectedTarget) return;
-        const message = ui.messageInput.value.trim();
-        db.ref(`users/${connectedTarget.id}/alert`).set({
-            active: true,
-            message: message || 'Um alerta foi enviado para você.',
-            from: currentUser.name,
-            timestamp: Date.now()
-        });
-        ui.ariaLogs.textContent = 'Alerta enviado.';
-        alert('Alerta enviado com sucesso!');
-    });
-
-    ui.btnClear.addEventListener('click', () => {
-        if (!connectedTarget) return;
-        db.ref(`users/${connectedTarget.id}/alert`).update({ active: false });
-        ui.ariaLogs.textContent = 'Alerta limpo.';
-        alert('Alerta do usuário foi limpo.');
-    });
-
-    function clearMyAlert() {
-        if (!currentUser) return;
-        db.ref(`users/${currentUser.id}/alert`).update({ active: false });
-        ui.ariaLogs.textContent = 'Alerta marcado como visto.';
-    }
-    window.clearMyAlert = clearMyAlert;
-
-    ui.logoutButton.addEventListener('click', logout);
-
-    // --- INICIALIZAÇÃO DA PÁGINA ---
-    document.addEventListener('DOMContentLoaded', () => {
-        setupTabs();
-        const savedUser = sessionStorage.getItem('currentUser');
-        if (savedUser) {
-            login(JSON.parse(savedUser));
-        } else {
-            showScreen('auth');
-        }
-    });
-  </script>
+    </script>
 </body>
 </html>
